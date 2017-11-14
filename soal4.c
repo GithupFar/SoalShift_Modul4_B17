@@ -62,3 +62,80 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
     close(res);
     return 0;
 }
+
+
+/*referensi tambahan
+
+static int xmp_open(const char *path, struct fuse_file_info *fi)
+{
+	int res,num=0,numb=0,flag=0,j=0,i=0,count=0;
+    int len2=strlen(path),len=strlen(lastakses);
+    char fpath[1000],lastakses[1000],lastaksesbackup[1000]
+    ,aksesbackup[1000];
+    FILE *to,*from;
+
+    sprintf(fpath,"%s%s",dirpath,path);
+
+    strcpy(lastakses,fpath);
+    strcpy(lastaksesbackup,fpath);
+    strcpy(lastaksesbackup,cbackup);
+    //file .bak dibuka
+    while(num<numb){ //numb;jumlah file.bak dibuat, num jumlah .bak dibuka
+        if(strcmp(lastaksesbackup,aksesbackup[num])==0)flag=1;
+        if(flag==1){
+            res=open(fpath,fi->flags);
+            if(res == -1) return -errno;
+            close(res);
+            return 0;
+            break;
+        }
+        num++;
+    }
+    //kalo flag==0
+    if(flag==0){
+        strcpy(aksesbackup[numb],lastaksesbackup);
+        numb++;
+    }
+    len=strlen(lastakses);
+
+    if((len>=2) && strcmp(&(lastakses[len-4]),".copy")==0){
+        char perintah[100];
+        sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
+        system(perintah);
+    }
+
+	res = open(fpath, fi->flags); //langsung dibuka filenya
+	if (res == -1)
+		return -errno;
+
+    while(j<len2){
+        if(path[j]='.') count=1;
+        if(count==1) break;
+        j++;
+    }
+
+    if(count==1 && flag=0){
+        while(i<=len){
+            if(lastakses[i]='.'){
+                if((len >= 2) && strcmp(&(lastakses[len-4]), ".copy")!=0){
+                    if(akses(lastaksesbackup,F_OK)==0) remove(lastaksesbackup);
+
+                    from=fopen(lastakses, "r");
+                    to=fopen(lastaksesbackup, "w");
+                    char a;
+                    while(1){
+                        a=fgetc(from);
+                        if(!feof(from)) fputc(a,to);
+                        else break;
+                    }
+                    char perintah2[100];
+                    sprintf(perintah2,"chmod 444 '%s' ",lastaksesbackup);
+                    system(perintah2);
+                }
+            }
+        }
+
+    }
+	close(res);
+	//return 0;
+}
