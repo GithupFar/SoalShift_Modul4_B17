@@ -7,7 +7,66 @@ File hasil salinan diberi nama <namafile>.<ekstensi>.copy
     Dan file tersebut tidak akan terbuka dan tidak dibuat salinannya.
 */
 
-static const char *dirpath = "/home/admin/Downloads/simpanan"; //pikirku dia udh di folder 'simpanan'
+#define FUSE_USE_VERSION 28
+#include <fuse.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <errno.h>
+#include <sys/time.h>
+
+static const char *dirpath = "/home/admin/Downloads"; //file awal ada di downloads
+
+static int xmp_getattr(const char *path, struct stat *stbuf) //dapetin informasi data
+{
+  	int res;
+	char fpath[1000];
+	sprintf(fpath,"%s%s",dirpath,path);
+	res = lstat(fpath, stbuf);
+
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
+static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
+		       off_t offset, struct fuse_file_info *fi)
+{
+  char fpath[1000];
+	if(strcmp(path,"/") == 0)
+	{
+		path=dirpath;
+		sprintf(fpath,"%s",path);
+	}
+	else sprintf(fpath, "%s%s",dirpath,path);
+	int res = 0;
+
+	DIR *dp;
+	struct dirent *de;
+
+	(void) offset;
+	(void) fi;
+
+	dp = opendir(fpath);
+	if (dp == NULL)
+		return -errno;
+
+	while ((de = readdir(dp)) != NULL) {
+		struct stat st;
+		memset(&st, 0, sizeof(st));
+		st.st_ino = de->d_ino;
+		st.st_mode = de->d_type << 12;
+		res = (filler(buf, de->d_name, &st, 0));
+			if(res!=0) break;
+	}
+
+	closedir(dp);
+	return 0;
+}
+
 //fungsi untuk flag
 int flags(const char *namafile) //dia menandai file itu .copy atau tidak .... / masih mencari penjelasan dari sc-nya
 {
@@ -26,7 +85,7 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 	char fpath[1000];
     sprintf(fpath,"%s%s",dirpath,path); //file ditampung kedalam fpath
 
-    if(flag(fpath)){ //begitu membuka file .copy ada notif error
+    if(flags(fpath)){ //begitu membuka file .copy ada notif error
         char perintah[100];
         sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
         system(perintah); //menjalankan perintah
@@ -63,79 +122,41 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
     return 0;
 }
 
-
-/*referensi tambahan
-
-static int xmp_open(const char *path, struct fuse_file_info *fi)
+static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
+		    struct fuse_file_info *fi)
 {
-	int res,num=0,numb=0,flag=0,j=0,i=0,count=0;
-    int len2=strlen(path),len=strlen(lastakses);
-    char fpath[1000],lastakses[1000],lastaksesbackup[1000]
-    ,aksesbackup[1000];
-    FILE *to,*from;
+  char fpath[1000];
+	if(strcmp(path,"/") == 0)
+	{
+		path=dirpath;
+		sprintf(fpath,"%s",path);
+	}
+	else sprintf(fpath, "%s%s",dirpath,path);
+	int res = 0;
+  int fd = 0 ;
 
-    sprintf(fpath,"%s%s",dirpath,path);
-
-    strcpy(lastakses,fpath);
-    strcpy(lastaksesbackup,fpath);
-    strcpy(lastaksesbackup,cbackup);
-    //file .bak dibuka
-    while(num<numb){ //numb;jumlah file.bak dibuat, num jumlah .bak dibuka
-        if(strcmp(lastaksesbackup,aksesbackup[num])==0)flag=1;
-        if(flag==1){
-            res=open(fpath,fi->flags);
-            if(res == -1) return -errno;
-            close(res);
-            return 0;
-            break;
-        }
-        num++;
-    }
-    //kalo flag==0
-    if(flag==0){
-        strcpy(aksesbackup[numb],lastaksesbackup);
-        numb++;
-    }
-    len=strlen(lastakses);
-
-    if((len>=2) && strcmp(&(lastakses[len-4]),".copy")==0){
-        char perintah[100];
-        sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
-        system(perintah);
-    }
-
-	res = open(fpath, fi->flags); //langsung dibuka filenya
-	if (res == -1)
+	(void) fi;
+	fd = open(fpath, O_RDONLY);
+	if (fd == -1)
 		return -errno;
 
-    while(j<len2){
-        if(path[j]='.') count=1;
-        if(count==1) break;
-        j++;
-    }
+	res = pread(fd, buf, size, offset);
+	if (res == -1)
+		res = -errno;
 
-    if(count==1 && flag=0){
-        while(i<=len){
-            if(lastakses[i]='.'){
-                if((len >= 2) && strcmp(&(lastakses[len-4]), ".copy")!=0){
-                    if(akses(lastaksesbackup,F_OK)==0) remove(lastaksesbackup);
+	close(fd);
+	return res;
+}
 
-                    from=fopen(lastakses, "r");
-                    to=fopen(lastaksesbackup, "w");
-                    char a;
-                    while(1){
-                        a=fgetc(from);
-                        if(!feof(from)) fputc(a,to);
-                        else break;
-                    }
-                    char perintah2[100];
-                    sprintf(perintah2,"chmod 444 '%s' ",lastaksesbackup);
-                    system(perintah2);
-                }
-            }
-        }
+static struct fuse_operations xmp_oper = {
+	.getattr	= xmp_getattr,
+	.readdir	= xmp_readdir,
+	.open		= xmp_open,
+	.read		= xmp_read,
+};
 
-    }
-	close(res);
-	//return 0;
+int main(int argc, char *argv[])
+{
+	umask(0);
+	return fuse_main(argc, argv, &xmp_oper, NULL);
 }
