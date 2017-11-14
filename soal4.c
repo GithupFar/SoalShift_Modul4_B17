@@ -72,11 +72,12 @@ int flags(const char *namafile) //dia menandai file itu .copy atau tidak .... / 
 {
     int x=strlen(namafile);
     char file[100];
+	strcpy(file,namafile+x-4);
     if(strcmp(file,".copy")==0)
         return 1;
     else
-    strcpy(file,namafile+x-4);
-        return 0;
+    	//strcpy(file,namafile+x-4);
+     	return 0;
 }
 
 static int xmp_open(const char *path, struct fuse_file_info *fi)
@@ -87,11 +88,17 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 
     if(flags(fpath)){ //begitu membuka file .copy ada notif error
         char perintah[100];
-        sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
-        system(perintah); //menjalankan perintah
+        //sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
+        //system(perintah); //menjalankan perintah
+	system("File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!");
         return 1;
     }
-    else{ //dia belum berekstensi file.copy (?)
+    else{ 
+	//2. atau bisa pake ini...belum nyoba
+	 res = open(fpath, fi->flags);
+                if (res == -1) return -errno;
+	    
+	//1. dia belum berekstensi file.copy (?)...pake ini dia tetep ngopy filenya
         char ch,src_file[1000],target_file[1000];
         FILE *from,*to;
         
