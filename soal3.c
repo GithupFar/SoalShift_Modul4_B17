@@ -154,17 +154,48 @@ static int xmp_write(const char *path, const char *buf, size_t size,off_t offset
     return res;
 }
 
+static int xmp_rename(const char *from, const char *to)
+{
+    int res;
+    char ffrom[1000];
+    char fto[1000];
+    system("mkdir /home/nat/Downloads/simpanan");
+
+    char direktori[] = "/home/nat/Downloads/simpanan";
+
+    sprintf(ffrom,"%s%s",dirpath,from);
+    sprintf(fto,"%s%s",direktori,to);
+    res = rename(ffrom, fto);
+
+    if(res == -1)
+    return -errno;
+
+    return 0;
+}
+
+static int xmp_mknod(const char *path, mode_t mode, dev_t rdev)
+{
+    int res;
+ char fpath[1000];
+ sprintf(fpath,"%s%s", dirpath, path);
+    res = mknod(fpath, mode, rdev);
+    if(res == -1)
+        return -errno;
+
+    return 0;
+}
 
 static struct fuse_operations xmp_oper =
 {
     .getattr = xmp_getattr,
     
 	.readdir = xmp_readdir,
+	.mknod = xmp_mknod,
     
     .symlink = xmp_symlink,
     .unlink = xmp_unlink,
     
-    
+    .rename = xmp_rename,
     .open = xmp_open,
     .read = xmp_read,
     .write = xmp_write
