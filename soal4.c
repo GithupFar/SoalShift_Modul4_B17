@@ -84,9 +84,9 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 	int res;
 	char fpath[1000];
     	sprintf(fpath,"%s%s",dirpath,path); //file ditampung kedalam fpath
-	res = open(path, fi->flags);
+	//res = open(path, fi->flags);
 
-    if(flag1(fpath) /*==1*/){ //begitu membuka file .copy ada notif error
+    if(flag1(fpath)){ //begitu membuka file .copy ada notif error
         char perintah[100];
         sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
         system(perintah); //menjalankan perintah
@@ -117,6 +117,11 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
         
         fclose(from);
         fclose(to);
+	
+	res = open(path, fi->flags);
+	if(res==-1){
+		return -errno;
+	}
     }
     
     close(res);
