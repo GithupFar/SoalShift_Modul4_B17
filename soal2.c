@@ -123,6 +123,16 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 		char command[500];
 		sprintf(command,"zenity --error --text='Terjadi kesalahan! File berisi konten berbahaya.'");
 		system (command);
+
+		char direktori[] = "/home/nat/Documents/rahasia";
+		char buatbaru[1000];
+		sprintf(buatbaru, "mkdir -p %s",direktori);
+		system (buatbaru);
+
+		char pindah[1000];
+		sprintf(pindah, "mv %s.ditandai %s",fpath,direktori);
+		system(pindah);
+
 		return -errno;
 	}
 	
