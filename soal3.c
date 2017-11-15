@@ -14,20 +14,22 @@
 #include <sys/time.h>
 
 static const char *dirpath = "/home/nat/Downloads";
-char alamat [1000];
 
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
-  int res;
-	char fpath[1000];
-	sprintf(fpath,"%s%s",dirpath,path);
-	res = lstat(fpath, stbuf);
+    int res;
+    char fpath[1000];
+    sprintf(fpath,"%s%s",dirpath,path);
+    res = lstat(fpath, stbuf);
 
-	if (res == -1)
-		return -errno;
+    if(res == -1)
+    {
+        return -errno;
+    }
 
-	return 0;
+    return 0;
 }
+
 
 static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		       off_t offset, struct fuse_file_info *fi)
@@ -64,150 +66,159 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	return 0;
 }
 
-static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
-		    struct fuse_file_info *fi)
+static int xmp_mkdir(const char *path,mode_t mode)
 {
-  char fpath[1000];
-	if(strcmp(path,"/") == 0)
-	{
-		path=dirpath;
-		sprintf(fpath,"%s",path);
-	}
-	else sprintf(fpath, "%s%s",dirpath,path);
-	
-	strcpy (alamat,path);
-
-	int res = 0;
-  	int fd = 0 ;
-
-	(void) fi;
-	fd = open(fpath, O_RDONLY);
-
-	
-	
-
-	if (fd == -1)
-		return -errno;
-
-	res = pread(fd, buf, size, offset);
-	if (res == -1)
-		res = -errno;
-
-	close(fd);
-	return res;
-}
-
-//File open operation
-static int xmp_open(const char *path, struct fuse_file_info *fi)
-{
-    int res;   
+    int res;
     char fpath[1000];
     sprintf(fpath,"%s%s",dirpath,path);
-    res = open(fpath, fi->flags);   
-    if (res == -1)
+    res = mkdir (fpath,mode);
+    if(res == -1)
         return -errno;
-    close(res);
+    return 0;
+}
+
+static int xmp_symlink(const char *from, const char *to)
+{
+    int res;
+ char ffrom[1000];
+ char fto[1000];
+ sprintf(ffrom,"%s%s",dirpath,from);
+ sprintf(fto,"%s%s",dirpath,to);
+    res = symlink(ffrom, fto);
+    if(res == -1)
+        return -errno;
+
     return 0;
 }
 
 
-//Write data to an open file
-static int xmp_write(const char *path, const char *buf, size_t size,off_t offset, struct fuse_file_info *fi)
+static int xmp_unlink(const char *path)
+{
+    int res;
+ char fpath[1000];
+ sprintf(fpath,"%s%s", dirpath, path);
+    res = unlink(fpath);
+    if(res == -1)
+        return -errno;
+
+    return 0;
+}
+
+static int xmp_truncate(const char *path, off_t size)
+{
+    int res;
+     char fpath[1000];
+ sprintf(fpath,"%s%s", dirpath, path);
+    res = truncate(fpath, size);
+    if(res == -1)
+        return -errno;
+
+    return 0;
+}
+
+static int xmp_open(const char *path, struct fuse_file_info *fi)
+{
+    int res;
+    char fpath[1000];
+    char path2[1000];
+    char path3[1000];
+    sprintf(fpath,"%s%s", dirpath, path);
+    sprintf(path2,"%s%s","/home/nat/Downloads",path);
+    int i;
+
+    close(res);
+    return 0;
+}
+
+static int xmp_read(const char *path, char *buf, size_t size, off_t offset,struct fuse_file_info *fi)
 {
     int fd;
     int res;
     char fpath[1000];
-    sprintf(fpath,"%s%s",dirpath,path);
-    (void) fi;
-    fd = open(fpath, O_WRONLY);
-
-	char fpath1[1000],alamat_asli[1000];
-	sprintf(fpath1,"%s%s",dirpath,alamat);
-	FILE *f1,*f2;
-	
-	strcpy(alamat_asli,fpath1);
-	strcat(alamat_asli,"-asli");
-
-	char kata[100];
-
-	f1 = fopen(alamat_asli,"w+");
-	f2 = fopen(fpath1, "a+");
-	while (fgets(kata,100,f2)!=NULL)
-	{
-		fprintf(f1,"%s",kata);
-	}
-	fclose(f1); fclose (f2);
-
-/*
-
-//harus punya 3 file >> 1. yg diedit 2.simpan awal mula 3.hasil edit
-//nanti yg file1 diedit dihapus tinggal simpan awal mula
-
-        char temp1[100],fpath2[1000];
-	system ("mkdir -p /home/nat/Documents/simpanan");
-//	char* direktori[] = "/home/nat/Downloads/simpanan";
-        sprintf(fpath2,"%s%s",dirpath,alamat);   
-        FILE *fd1, *fd2;
-       
-
-	
-        strcpy(temp1,fpath2);
-        strcat(temp1,"-copy");
-   
-        char kata[100];
-       
-        fd1 = fopen(temp1, "w+");
-        fd2 = fopen(fpath2, "a+");
-        while(fgets(kata,100,fd2)!=NULL)
-        {
-            fprintf(fd1,"%s",kata);   
-        }
-        fclose(fd1);
-        fclose(fd2);
-*/
-    if (fd == -1)
+    sprintf(fpath,"%s%s", dirpath, path);
+    fd = open(fpath, O_RDONLY);
+    if(fd == -1)
         return -errno;
-    res = pwrite(fd, buf, size, offset);
-    if (res == -1)
+
+    res = pread(fd, buf, size, offset);
+    if(res == -1)
         res = -errno;
-    close(fd);   
+
+    close(fd);
     return res;
+}
+
+static int xmp_write(const char *path, const char *buf, size_t size,off_t offset, struct fuse_file_info *fi)
+{
+    int fd;
+    int res;
+ char fpath[1000];
+ sprintf(fpath,"%s%s", dirpath, path);
+    fd = open(fpath, O_WRONLY);
+    if(fd == -1)
+        return -errno;
+
+    res = pwrite(fd, buf, size, offset);
+    if(res == -1)
+        res = -errno;
+
+    close(fd);
+    return res;
+}
+
+static int xmp_rename(const char *from, const char *to)
+{
+    int res;
+    char ffrom[1000];
+    char fto[1000];
+    system("mkdir /home/nat/Downloads/simpanan");
+
+    char direktori[] = "/home/nat/Downloads/simpanan";
+
+    sprintf(ffrom,"%s%s",dirpath,from);
+    sprintf(fto,"%s%s",direktori,to);
+    res = rename(ffrom, fto);
+
+    if(res == -1)
+    return -errno;
+
+    return 0;
 }
 
 static int xmp_mknod(const char *path, mode_t mode, dev_t rdev)
 {
     int res;
-    char fpath[1000];
-    sprintf(fpath,"%s%s",dirpath,path);
-    res=mknod(fpath,mode,rdev);
-    if (res==-1)
+ char fpath[1000];
+ sprintf(fpath,"%s%s", dirpath, path);
+    res = mknod(fpath, mode, rdev);
+    if(res == -1)
         return -errno;
+
     return 0;
 }
 
-
-static int xmp_truncate(const char *path, off_t size)
+static struct fuse_operations xmp_oper =
 {
-    int res;
-    char fpath[1000];
-    sprintf(fpath,"%s%s",dirpath,path);
-    res = truncate(fpath, size);
-    if (res == -1)
-        return -errno;
-    return 0;
-}
-
-static struct fuse_operations xmp_oper = {
-	.getattr	= xmp_getattr,
-	.readdir	= xmp_readdir,
-	.read		= xmp_read,
-	.write		= xmp_write,
-	.truncate	= xmp_truncate,
-	.mknod		= xmp_mknod
+    .getattr = xmp_getattr,
+    
+	.readdir = xmp_readdir,
+	.mknod = xmp_mknod,
+    
+    .symlink = xmp_symlink,
+    .unlink = xmp_unlink,
+    
+    .rename = xmp_rename,
+    .truncate = xmp_truncate,
+    .open = xmp_open,
+    .read = xmp_read,
+    .write = xmp_write
+    
 };
 
 int main(int argc, char *argv[])
 {
-	umask(0);
+    umask(0);
 	return fuse_main(argc, argv, &xmp_oper, NULL);
 }
+
+//http://yaukingsyaukiaulia.blogspot.co.id/2015/
