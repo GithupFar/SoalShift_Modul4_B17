@@ -104,6 +104,18 @@ static int xmp_unlink(const char *path)
     return 0;
 }
 
+static int xmp_truncate(const char *path, off_t size)
+{
+    int res;
+     char fpath[1000];
+ sprintf(fpath,"%s%s", dirpath, path);
+    res = truncate(fpath, size);
+    if(res == -1)
+        return -errno;
+
+    return 0;
+}
+
 static int xmp_open(const char *path, struct fuse_file_info *fi)
 {
     int res;
@@ -164,7 +176,7 @@ static struct fuse_operations xmp_oper =
     .symlink = xmp_symlink,
     .unlink = xmp_unlink,
     
-    
+    .truncate = xmp_truncate,
     .open = xmp_open,
     .read = xmp_read,
     .write = xmp_write
