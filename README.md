@@ -11,4 +11,6 @@ http://world-just-for-you.blogspot.co.id/2014/12/tutorial-menggunakan-fusefile-s
 
 soal 4
 http://valdyputra.blogspot.co.id/2015/11/tentang-fuse-linux.html
+<br>
 http://deliaaristi.blogspot.co.id/2015/11/fuse.html //lebih panjang n rumit
+</br>
