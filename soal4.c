@@ -68,7 +68,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 }
 
 //fungsi untuk flag
-int flags(const char *namafile) //dia menandai file itu .copy atau tidak .... / masih mencari penjelasan dari sc-nya
+int flag1(const char *namafile) //mencari file .copy
 {
     int x=strlen(namafile);
     char file[100];
@@ -76,7 +76,6 @@ int flags(const char *namafile) //dia menandai file itu .copy atau tidak .... / 
     if(strcmp(file,".copy")==0)
         return 1;
     else
-    	//strcpy(file,namafile+x-4);
      	return 0;
 }
 
@@ -87,18 +86,13 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
     	sprintf(fpath,"%s%s",dirpath,path); //file ditampung kedalam fpath
 	res = open(path, fi->flags);
 
-    if(flags(fpath)){ //begitu membuka file .copy ada notif error
+    if(flags(fpath) /*==1*/){ //begitu membuka file .copy ada notif error
         char perintah[100];
         sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
         system(perintah); //menjalankan perintah
-	//system("File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!");
         return 1;
     }
-    else{ 
-	//2. atau bisa pake ini...belum nyoba..coba pake ini
-	 return 0;
-	    
-	/*//1. dia belum berekstensi file.copy (?)...pake ini dia tetep ngopy filenya
+    else{ //kalo dia belum ada file.copy-nya
         char ch,src_file[1000],target_file[1000];
         FILE *from,*to;
         
@@ -109,7 +103,7 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
         
         int ada;
         ada=access(target_file,F_OK); //jika ada
-        if(ada==0) //0=ada -1=tidak ada
+        if(ada==0) //0=ada -1=tidak ada (?)
         {
             remove(target_file);  //remove file target
         }
@@ -119,14 +113,14 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
             fputc(ch,to);
         char perintah2[100];
         sprintf(perintah2,"chmod 444 '%s.copy'",fpath); //merubah akses tidk bisa dibuka maupun diedit
-        system(perintah2);
+        system(perintah2); //jalankan perintah2
         
         fclose(from);
         fclose(to);*/
     }
     
-    //close(res);
-    //return 0;
+    close(res);
+    return 0;
 }
 
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
