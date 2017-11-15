@@ -16,7 +16,7 @@ Pada saat membuka file dengan ekstensi *.pdf, *.doc, *.txt pada directori Docume
 #include <errno.h>
 #include <sys/time.h>
 
-static const char *dirpath = "/home/nat/Documents";
+static const char *dirpath = "/home/ardourhope/Documents";
 
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
@@ -119,13 +119,15 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 		char permisi[500];
 		sprintf(permisi,"chmod 000 %s.ditandai",fpath);
 		system(permisi);
-		
+
 		char command[500];
 		sprintf(command,"zenity --error --text='Terjadi kesalahan! File berisi konten berbahaya.'");
 		system (command);
+
+		sprintf(command,"mkdir %s/rahasia", dirpath );
+		system (command);
 		return -errno;
 	}
-	
 	else
 	return -errno;
 		
