@@ -84,21 +84,21 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 {
 	int res;
 	char fpath[1000];
-    sprintf(fpath,"%s%s",dirpath,path); //file ditampung kedalam fpath
+    	sprintf(fpath,"%s%s",dirpath,path); //file ditampung kedalam fpath
+	res = open(path, fi->flags);
 
     if(flags(fpath)){ //begitu membuka file .copy ada notif error
         char perintah[100];
-        //sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
-        //system(perintah); //menjalankan perintah
-	system("File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!");
+        sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
+        system(perintah); //menjalankan perintah
+	//system("File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!");
         return 1;
     }
     else{ 
-	//2. atau bisa pake ini...belum nyoba
-	 res = open(fpath, fi->flags);
-                if (res == -1) return -errno;
+	//2. atau bisa pake ini...belum nyoba..coba pake ini
+	 return 0;
 	    
-	//1. dia belum berekstensi file.copy (?)...pake ini dia tetep ngopy filenya
+	/*//1. dia belum berekstensi file.copy (?)...pake ini dia tetep ngopy filenya
         char ch,src_file[1000],target_file[1000];
         FILE *from,*to;
         
@@ -122,11 +122,11 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
         system(perintah2);
         
         fclose(from);
-        fclose(to);
+        fclose(to);*/
     }
     
-    close(res);
-    return 0;
+    //close(res);
+    //return 0;
 }
 
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
