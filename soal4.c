@@ -17,7 +17,7 @@ File hasil salinan diberi nama <namafile>.<ekstensi>.copy
 #include <errno.h>
 #include <sys/time.h>
 
-static const char *dirpath = "/home/admin/Downloads"; //file awal ada di downloads
+static const char *dirpath = "/home/fafa/Downloads/simpanan"; //pikirku dia udah di folder simpanan
 
 static int xmp_getattr(const char *path, struct stat *stbuf) //dapetin informasi data
 {
@@ -67,12 +67,11 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	return 0;
 }
 
-//fungsi untuk flag
-int flag1(const char *namafile) //mencari file .copy
+int cek(const char *namafile) //mencari file ekstensi .copy
 {
     int x=strlen(namafile);
     char file[100];
-	strcpy(file,namafile+x-4);
+	strcpy(file,namafile+x-5);
     if(strcmp(file,".copy")==0)
         return 1;
     else
@@ -84,44 +83,33 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 	int res;
 	char fpath[1000];
     	sprintf(fpath,"%s%s",dirpath,path); //file ditampung kedalam fpath
-	//res = open(path, fi->flags);
+	res = open(path, fi->flags);
 
-    if(flag1(fpath)){ //begitu membuka file .copy ada notif error
+    if(cek(fpath)){ //begitu membuka file .copy ada notif error
         char perintah[100];
         sprintf(perintah,"zenity --error --text='File yang anda buka adalah file hasil salinan. File tidak bisa diubah maupun disalin kembali!'");
         system(perintah); //menjalankan perintah
-        return 1;
+        return -errno;
     }
     else{ //kalo dia belum ada file.copy-nya
-        char ch,src_file[1000],target_file[1000];
-        FILE *from,*to;
+        char src_file[1000],target_file[1000];
+        FILE *from;
         
         sprintf(src_file,"%s",fpath); //file di fpath di simpan ke src_file
         from=fopen(src_file,"r"); //diread/buka
         
         sprintf(target_file,"%s.copy",fpath); //file target=file berekstensi .copy
         
-        int ada;
-        ada=access(target_file,F_OK); //jika ada
-        if(ada==0) //0=ada -1=tidak ada (?)
-        {
-            remove(target_file);  //remove file target
-        }
-        
-        to=fopen(target_file,"w"); //buat lagi file target
-        while((ch=fgetc(from))!=EOF) //file target berisi copy-an dari file source
-            fputc(ch,to);
+        rename(src_file,target_file);
+	    
         char perintah2[100];
-        sprintf(perintah2,"chmod 444 '%s.copy'",fpath); //merubah akses tidk bisa dibuka maupun diedit
+        sprintf(perintah2,"chmod 000 '%s.copy'",fpath); //merubah akses tidk bisa dibuka maupun diedit
         system(perintah2); //jalankan perintah2
         
         fclose(from);
-        fclose(to);
 	
-	res = open(path, fi->flags);
-	if(res==-1){
-		return -errno;
-	}
+	res = open(fpath, fi->flags);
+	if(res==-1) return -errno;
     }
     
     close(res);
