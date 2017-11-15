@@ -112,14 +112,22 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 	
 	if (cek (fpath))
 	{
+		char source_file[1000], target_file[1000];
+		sprintf(source_file,"%s",fpath);
+		sprintf(target_file,"%s.ditandai",fpath);
+		int ret = rename (source_file,target_file);
+		char permisi[500];
+		sprintf(permisi,"chmod 000 %s.ditandai",fpath);
+		system(permisi);
+		
 		char command[500];
 		sprintf(command,"zenity --error --text='Terjadi kesalahan! File berisi konten berbahaya.'");
 		system (command);
-		return 1;
+		return -errno;
 	}
 	
 	else
-	return 0;
+	return -errno;
 		
 }
 
