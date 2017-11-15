@@ -126,11 +126,16 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 
 		sprintf(command,"mkdir %s/rahasia", dirpath );
 		system (command);
+
+
+		sprintf (command,"mv %s %s/rahasia/%s.ditandai"  target_files,dirpath,path);
+		system (command);
+
 		return -errno;
 	}
 	else
 	return -errno;
-		
+
 }
 
 
