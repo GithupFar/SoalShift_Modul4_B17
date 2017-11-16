@@ -16,7 +16,7 @@ Pada saat membuka file dengan ekstensi *.pdf, *.doc, *.txt pada directori Docume
 #include <errno.h>
 #include <sys/time.h>
 
-static const char *dirpath = "/home/nat/Documents";
+static const char *dirpath = "/home/ardourhope/Documents";
 
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
@@ -127,7 +127,7 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 		sprintf(command,"mkdir %s/rahasia", dirpath ); 
     		system (command); 
 
-		sprintf (command,"mv %s %s/rahasia/%s.ditandai"  target_files,dirpath,path); 
+		sprintf (command,"mv %s %s/rahasia/%s.ditandai",target_file,dirpath,path); 
     		system (command); 
 		
 		
